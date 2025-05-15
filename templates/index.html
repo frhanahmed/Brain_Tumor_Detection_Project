@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brain MRI Tumor Detection</title>
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background: linear-gradient(to right, #141e30, #243b55);
+            color: white;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            backdrop-filter: blur(10px);
+            width: 350px;
+        }
+        h2 {
+            margin-bottom: 15px;
+        }
+        input[type="file"] {
+            display: block;
+            margin: 15px auto;
+            padding: 10px;
+            border-radius: 5px;
+            border: none;
+            background: white;
+            cursor: pointer;
+        }
+        #preview {
+            margin-top: 10px;
+            max-width: 100%;
+            height: auto;
+            display: none;
+            border-radius: 10px;
+            box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.2);
+        }
+        button {
+            margin-top: 15px;
+            padding: 12px 20px;
+            background: #ff4b2b;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.3s ease;
+        }
+        button:hover {
+            background: #ff1b00;
+        }
+        #result {
+            margin-top: 15px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Upload Brain MRI Image</h2>
+        <input type="file" id="imageInput" accept="image/*">
+        <br>
+        <img id="preview" src="" alt="MRI Preview">
+        <br>
+        <button onclick="predictTumor()">Predict Tumor</button>
+        <p id="result"></p>
+    </div>
+    
+    <script>
+        // Handle image preview before upload
+        document.getElementById('imageInput').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = document.getElementById('preview');
+                    img.src = e.target.result;
+                    img.style.display = 'block';
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Send the image to the backend for prediction
+        function predictTumor() {
+            const fileInput = document.getElementById('imageInput');
+            const file = fileInput.files[0];
+            if (!file) {
+                alert("Please upload an image first!");
+                return;
+            }
+
+            // Prepare FormData for sending the file
+            const formData = new FormData();
+            formData.append('image', file);
+
+            // Display loading message
+            document.getElementById('result').innerText = "Processing...";
+
+            // Send the file to the Flask backend
+            fetch('/predict', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.text())
+            .then(result => {
+                // Display the result returned by the backend
+                document.getElementById('result').innerText = "Prediction: " + result;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('result').innerText = "An error occurred!";
+            });
+        }
+    </script>
+</body>
+</html>
