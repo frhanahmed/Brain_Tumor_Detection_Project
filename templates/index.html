@@ -1,126 +1,195 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Brain MRI Tumor Detection</title>
-    <style>
-        body {
-            font-family: 'Poppins', sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            background: linear-gradient(to right, #141e30, #243b55);
-            color: white;
-        }
-        .container {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
-            text-align: center;
-            backdrop-filter: blur(10px);
-            width: 350px;
-        }
-        h2 {
-            margin-bottom: 15px;
-        }
-        input[type="file"] {
-            display: block;
-            margin: 15px auto;
-            padding: 10px;
-            border-radius: 5px;
-            border: none;
-            background: white;
-            cursor: pointer;
-        }
-        #preview {
-            margin-top: 10px;
-            max-width: 100%;
-            height: auto;
-            display: none;
-            border-radius: 10px;
-            box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.2);
-        }
-        button {
-            margin-top: 15px;
-            padding: 12px 20px;
-            background: #ff4b2b;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-            transition: background 0.3s ease;
-        }
-        button:hover {
-            background: #ff1b00;
-        }
-        #result {
-            margin-top: 15px;
-            font-weight: bold;
-        }
-    </style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Brain MRI Tumor Detection</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet"/>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Poppins', sans-serif; background: #000; color: #fff; }
+
+    #bgVideo { position: fixed; top:0; left:0; width:100vw; height:100vh; object-fit:cover; z-index:0; }
+    #overlay { position: fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.5); z-index:1; }
+
+    nav.navbar, section.hero, section.info, footer.team-footer { position: relative; z-index: 2; }
+
+    .navbar { display: flex; justify-content: space-between; align-items: center; background: #222; padding: 1rem 2rem; }
+    .navbar .brand { font-weight:600; font-size:1.2rem; }
+    .navbar a { color:#eee; margin-left:1.5rem; text-decoration:none; }
+    .navbar a.active, .navbar a:hover { color:#0a8cff; }
+
+    .hero { display:flex; flex-direction:column; justify-content:center; align-items:center; height: 360px; }
+    .upload-container { background:#fff; color:#333; padding:1rem 1.5rem; border-radius:30px;
+                        box-shadow:0 4px 12px rgba(0,0,0,0.3); width:300px;
+                        display:flex; flex-direction:column; align-items:center; }
+    .upload-container button { width:100%; margin:0.3rem 0; padding:0.6rem;
+                              background:#0a8cff; border:none; border-radius:20px;
+                              color:#fff; font-weight:500; cursor:pointer; }
+    .upload-container button:disabled { opacity:0.6; cursor:not-allowed; }
+    .upload-container input[type="file"] { display:none; }
+
+    #resultText { margin-top:1rem; font-size:1.2rem; color:#0a8cff;
+                  text-align:center; visibility:hidden; }
+
+    .info {
+      max-width:900px; margin:2rem auto;
+      background:#fff; color:#333;
+      padding:1.5rem; border-radius:8px;
+      box-shadow:0 4px 12px rgba(0,0,0,0.1);
+    }
+    .info-wrapper { display: flex; align-items: flex-start; gap: 1.5rem; flex-wrap: wrap; }
+    .images-container { display: flex; flex-direction: column; gap: 0.8rem; }
+    .images-container img {
+      width: 200px; height: 200px;
+      object-fit: cover; border-radius: 8px;
+    }
+    .info-content {
+      flex: 1; min-width: 240px;
+      text-align: justify;
+      hyphens: auto;
+      text-justify: inter-word;
+      line-height: 1.5;
+    }
+    .info-content h2 { margin-bottom:0.5rem; color:#222; }
+    .info-content p, .info-content ul { color:#555; margin-bottom:1rem; }
+    .info-content ul { list-style: disc; padding-left:1.2rem; }
+
+    .team-footer { background:#222; padding:1rem 0; }
+    .team-container {
+      display: flex; justify-content: flex-start; align-items: center;
+      gap: 1rem; padding: 0 1rem;
+      overflow-x: auto; white-space: nowrap;
+      scroll-behavior: smooth;
+    }
+    .team-member {
+      flex: 0 0 auto; display: inline-flex;
+      align-items: center; gap: 0.6rem;
+      color: #eee;
+    }
+    .team-member img {
+      width:50px; height:50px; object-fit: cover;
+      border-radius:50%; border:2px solid #0a8cff;
+    }
+    .team-member h3, .team-member .role, .team-member .contact {
+      margin: 0; font-size:0.9rem; color:#fff;
+    }
+    .team-member .contact { color: #aaa; }
+    .team-member .role { color: #0a8cff; }
+
+    @media (max-width: 600px) {
+      .info-wrapper { flex-direction: column; align-items: center; }
+      .images-container img { width:100%; height:auto; }
+      .team-container { flex-direction: column; align-items: center; }
+      .team-member { flex-direction: column; align-items: center; }
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <h2>Upload Brain MRI Image</h2>
-        <input type="file" id="imageInput" accept="image/*">
-        <br>
-        <img id="preview" src="" alt="MRI Preview">
-        <br>
-        <button onclick="predictTumor()">Predict Tumor</button>
-        <p id="result"></p>
+  <video id="bgVideo" autoplay muted loop playsinline>
+    <source src="{{ url_for('static', filename='back.mp4') }}" type="video/mp4" />
+  </video>
+  <div id="overlay"></div>
+
+  <nav class="navbar">
+    <div class="brand">Tumor Detector</div>
+    <div>
+      <a href="#" class="active">HOME</a>
+      <a href="#predict">PREDICT</a>
+      <a href="#team">TEAM</a>
+      <a href="#contact">CONTACT US</a>
     </div>
-    
-    <script>
-        // Handle image preview before upload
-        document.getElementById('imageInput').addEventListener('change', function(event) {
-            const file = event.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const img = document.getElementById('preview');
-                    img.src = e.target.result;
-                    img.style.display = 'block';
-                }
-                reader.readAsDataURL(file);
-            }
-        });
+  </nav>
 
-        // Send the image to the backend for prediction
-        function predictTumor() {
-            const fileInput = document.getElementById('imageInput');
-            const file = fileInput.files[0];
-            if (!file) {
-                alert("Please upload an image first!");
-                return;
-            }
+  <section class="hero">
+    <div class="upload-container">
+      <button id="chooseBtn">Choose File</button>
+      <input type="file" id="fileInput" accept="image/*" />
+      <button id="submitBtn" disabled>Submit</button>
+    </div>
+    <div id="resultText"></div>
+  </section>
 
-            // Prepare FormData for sending the file
-            const formData = new FormData();
-            formData.append('image', file);
+  <section class="info" id="predict">
+    <div class="info-wrapper">
+      <div class="images-container">
+        <img src="{{ url_for('static', filename='images/brain1.jpg') }}" alt="MRI scan 1">
+        <img src="{{ url_for('static', filename='images/brain2.jpg') }}" alt="MRI scan 2">
+      </div>
+      <div class="info-content">
+        <h2>What is a Brain Tumor</h2>
+        <p>A brain tumor is an abnormal growth of cells within the skull—either primary (originating in the brain) or secondary/metastatic (spreading from another body part). The tumor can be benign (non-cancerous) or malignant (cancerous). Any space‑occupying lesion can harm the brain due to pressure buildup.</p>
+        <h2>Types of Brain Tumors</h2>
+        <ul>
+          <li><strong>Meningioma:</strong> The most common benign tumor, arising from the brain's membranes. Slow-growing and often cured with surgery. Represents ~37% of primary brain tumors and ~98% are benign.</li>
+          <li><strong>Gliomas:</strong> Includes astrocytomas, oligodendrogliomas, and highly aggressive glioblastoma. Make up ~80% of malignant brain tumors and ~30% of all CNS tumors.</li>
+          <li><strong>Pituitary Adenomas:</strong> Usually benign but may affect hormone balance and vision. Occur in approximately 17% of the population.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
 
-            // Display loading message
-            document.getElementById('result').innerText = "Processing...";
+  <footer class="team-footer" id="team">
+    <div class="team-container">
+      <div class="team-member">
+        <img src="{{ url_for('static', filename='team/MY.png') }}" alt="Marmik Agarwal">
+        <div><h3>Marmik Agarwal</h3><p class="contact">marmikagarwal124@gmail.com</p></div>
+      </div>
+      <div class="team-member">
+        <img src="{{ url_for('static', filename='team/farhan.jpg') }}" alt="Farhan Ahmed">
+        <div><h3>Farhan Ahmed</h3><p class="contact">frhanahmedf1@gmail.com</p></div>
+      </div>
+      <div class="team-member">
+        <img src="{{ url_for('static', filename='team/lissan.jpg') }}" alt="Lissan Ali">
+        <div><h3>Lissan Ali</h3><p class="contact">lisaanAli34@gmail.com</p></div>
+      </div>
+      <div class="team-member">
+        <img src="{{ url_for('static', filename='team/john.jpg') }}" alt="Shubham Gupta">
+        <div><h3>Shubham Gupta</h3><p class="contact">shubhamgupta19@gmail.com</p></div>
+      </div>
+      <div class="team-member">
+        <img src="{{ url_for('static', filename='team/mentor.jpg') }}" alt="Swapna Haldar">
+        <div><h3>Swapna Haldar</h3><p class="role">Mentor</p></div>
+      </div>
+    </div>
+  </footer>
 
-            // Send the file to the Flask backend
-            fetch('/predict', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.text())
-            .then(result => {
-                // Display the result returned by the backend
-                document.getElementById('result').innerText = "Prediction: " + result;
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                document.getElementById('result').innerText = "An error occurred!";
-            });
-        }
-    </script>
+  <script>
+    const chooseBtn = document.getElementById('chooseBtn'),
+          submitBtn = document.getElementById('submitBtn'),
+          fileInput = document.getElementById('fileInput'),
+          resultText = document.getElementById('resultText');
+
+    chooseBtn.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', () => {
+      if (fileInput.files.length) {
+        const name = fileInput.files[0].name;
+        chooseBtn.textContent = name.length > 15 ? name.slice(0,13)+'...' : name;
+        submitBtn.disabled = false;
+      } else {
+        chooseBtn.textContent = 'Choose File';
+        submitBtn.disabled = true;
+      }
+    });
+
+    submitBtn.addEventListener('click', async () => {
+      if (!fileInput.files.length) return;
+      resultText.style.visibility = 'visible';
+      resultText.textContent = 'Processing...';
+      submitBtn.disabled = true;
+
+      const form = new FormData();
+      form.append('image', fileInput.files[0]);
+      try {
+        const res = await fetch('/predict', { method: 'POST', body: form });
+        resultText.textContent = res.ok ? await res.text() : `Error: ${res.status}`;
+      } catch(err) {
+        console.error(err);
+        resultText.textContent = 'Error during prediction';
+      } finally {
+        submitBtn.disabled = false;
+      }
+    });
+  </script>
 </body>
 </html>

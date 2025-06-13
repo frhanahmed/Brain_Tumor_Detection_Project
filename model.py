@@ -39,7 +39,7 @@ def load_data(data_dir, img_size):
     return np.array(data), np.array(labels)
 
 # Define paths and parameters
-data_dir = r'C:\Users\frhan\Desktop\03_Farhan\Brain Tumor Detection\Brain_Tumor_Datasets\train'
+data_dir = r'C:\Users\frhan\Desktop\03_Farhan\Projects\Python\Project_College\Brain_Tumor_Datasets copy\train'
 img_size = 128
 
 # Load dataset
@@ -85,12 +85,12 @@ model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accur
 # Step 4: Train the model
 history = model.fit(
     datagen.flow(X_train, y_train, batch_size=32),
-    epochs=5,
+    epochs=10,
     validation_data=(X_test, y_test)
 )
 
 # Save the model for Flask use
-model.save('brain_tumor_model.h5')
+# model.save('brain_tumor_model.h5')
 
 # Step 5: Evaluate the model
 test_loss, test_accuracy = model.evaluate(X_test, y_test, verbose=2)
@@ -128,6 +128,6 @@ def predict_image(image_path, model):
     return "Tumor" if np.argmax(prediction) == 1 else "No Tumor"
 
 # Test prediction
-image_path = r'C:\Users\frhan\Desktop\03_Farhan\Brain Tumor Detection\Brain_Tumor_Datasets\test\yes\Te-gl_0023.jpg'
+image_path = r'C:\Users\frhan\Desktop\03_Farhan\Projects\Python\Project_College\Brain_Tumor_Datasets\test\yes\Te-gl_0027.jpg'
 result = predict_image(image_path, model)
 print(f"Prediction: {result}")
